@@ -17,8 +17,8 @@ def admin():
 @users_bp.route('/set_cookie')
 def set_cookie():
     response = make_response('Кука встановлена')
-    response.set_cookie('username', 'student', expires=datetime.now()+timedelta(seconds=10))
-    response.set_cookie('username', 'student', max_age=timedelta(seconds=10))
+    response.set_cookie('username', 'student', expires=datetime.now()+timedelta(seconds=60))
+    response.set_cookie('colour', 'black', max_age=timedelta(seconds=60))
     return response
 
 @users_bp.route('/get_cookie')
