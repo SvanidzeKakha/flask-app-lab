@@ -1,5 +1,30 @@
 from . import users_bp
-from flask import render_template, request, redirect, url_for, make_response, timedelta, datetime
+from flask import render_template, request, redirect, url_for, make_response, session, flash
+from datetime import timedelta, datetime
+
+@users_bp.route("/profile")
+def get_profile():
+    if "username" in session:
+        username_value = session["username"]
+        flash("Invalid: Every field is required.", "danger")
+        return render_template("profile.html", username = username_value)
+    return redirect(url_for("users.login"))
+
+@users_bp.route("/login", methods=['GET','POST'])
+def login():
+    if request.method == "POST":
+        username = request.form[login]
+        session["username"] = username
+        flash("Success: Info added successfully.", "success")
+        return redirect(url_for("users.get_profile"))
+    return render_template("login.html")
+
+@users_bp.route("/logout")
+def logout():
+    session.pop('username', None)
+    session.pop('age', None)
+    return redirect(url_for("users.get_profile"))
+
 
 @users_bp.route("/hi/<string:name>")
 def greetings(name):
