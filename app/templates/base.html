@@ -8,7 +8,7 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body>
+<body class="{{ color_scheme }}">
     <header class="container">
         <h1 class="text-center mt-5">My Resume</h1>
         {% include 'navbar.html' %}

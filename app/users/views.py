@@ -2,21 +2,63 @@ from . import users_bp
 from flask import render_template, request, redirect, url_for, make_response, session, flash
 from datetime import timedelta, datetime
 
-@users_bp.route("/profile")
-def get_profile():
-    if "username" in session:
-        username_value = session["username"]
-        flash("Invalid: Every field is required.", "danger")
-        return render_template("profile.html", username = username_value)
-    return redirect(url_for("users.login"))
+@users_bp.route("/set_color_scheme/<scheme>")
+def set_color_scheme(scheme):
+    if scheme not in ['light', 'dark']:
+        flash("Error: Invalid color scheme.", "danger")
+    else:
+        resp = make_response(redirect(url_for("users.get_profile")))
+        resp.set_cookie('color_scheme', scheme, max_age=30 * 24 * 60 * 60)
+        flash(f"Success: Color scheme changed to '{scheme}'.", "success")
+        return resp
 
-@users_bp.route("/login", methods=['GET','POST'])
-def login():
+@users_bp.route("/profile", methods=['GET', 'POST'])
+def get_profile():
+    if "username" not in session:
+        flash("Error: You must be logged in to access this page.", "danger")
+        return redirect(url_for("users.login"))
+
+    username_value = session["username"]
+    cookies = request.cookies
+    color_scheme = cookies.get('color_scheme', 'light')
+
     if request.method == "POST":
-        username = request.form[login]
-        session["username"] = username
-        flash("Success: Info added successfully.", "success")
-        return redirect(url_for("users.get_profile"))
+        action = request.form.get("action")
+        cookie_key = request.form.get("cookie_key")
+        cookie_value = request.form.get("cookie_value")
+        cookie_expiry = request.form.get("cookie_expiry")
+
+        resp = make_response(redirect(url_for("users.get_profile")))
+
+        if action == "add":
+            resp.set_cookie(cookie_key, cookie_value, max_age=int(cookie_expiry))
+            flash(f"Success: Cookie '{cookie_key}' added.", "success")
+            return resp
+
+        elif action == "delete":
+            resp.delete_cookie(cookie_key)
+            flash(f"Success: Cookie '{cookie_key}' deleted.", "success")
+            return resp
+
+    return render_template("profile.html", username=username_value, cookies=cookies, color_scheme=color_scheme)
+
+@users_bp.route("/login", methods=['GET', 'POST'])
+def login():
+    correct_username = "User1"
+    correct_password = "password123"
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == correct_username and password == correct_password:
+            session["username"] = username
+            flash("Success: Logged in successfully.", "success")
+            return redirect(url_for("users.get_profile"))
+        else:
+            flash("Error: Invalid username or password.", "danger")
+            return redirect(url_for("users.login"))
+
     return render_template("login.html")
 
 @users_bp.route("/logout")

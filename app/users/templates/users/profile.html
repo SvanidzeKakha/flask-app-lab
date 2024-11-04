@@ -1,11 +1,66 @@
 {% extends 'base.html' %}
 
-{% block title %} Greeting Page {% endblock %}
+{% block title %} Profile Page {% endblock %}
 
 {% block content %}
 
 <h1>Hi, {{ username }}</h1>
+<!-- Color scheme selection buttons -->
+<h3>Select Color Scheme</h3>
+<div>
+    <a href="{{ url_for('users.set_color_scheme', scheme='light') }}" class="btn btn-light">Light Mode</a>
+    <a href="{{ url_for('users.set_color_scheme', scheme='dark') }}" class="btn btn-dark">Dark Mode</a>
+</div>
 
-<a href="{{url_for('users.logout')}}">logout</a>
+<!-- Form to add cookies -->
+<h3>Add Cookie</h3>
+<form action="" method="post">
+    <input type="hidden" name="action" value="add">
+    <div>
+        <label for="cookie_key">Cookie Key:</label>
+        <input type="text" name="cookie_key" id="cookie_key" required>
+    </div>
+    <div>
+        <label for="cookie_value">Cookie Value:</label>
+        <input type="text" name="cookie_value" id="cookie_value" required>
+    </div>
+    <div>
+        <label for="cookie_expiry">Cookie Expiry (in seconds):</label>
+        <input type="number" name="cookie_expiry" id="cookie_expiry" required>
+    </div>
+    <button type="submit">Add Cookie</button>
+</form>
+
+<!-- Form to delete cookies -->
+<h3>Delete Cookie</h3>
+<form action="" method="post">
+    <input type="hidden" name="action" value="delete">
+    <div>
+        <label for="cookie_key">Cookie Key:</label>
+        <input type="text" name="cookie_key" id="cookie_key_delete" required>
+    </div>
+    <button type="submit">Delete Cookie</button>
+</form>
+
+<!-- Table to display current cookies -->
+<h3>Current Cookies</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, value in cookies.items() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{{ url_for('users.logout') }}" class="btn btn-danger">Logout</a>
 
 {% endblock %}
