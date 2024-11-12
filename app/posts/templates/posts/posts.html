@@ -10,9 +10,14 @@
 {% block content %}
 <div class="container">
     <h1>Articles</h1>
+
+    <form action="{{ url_for('.add_post') }}" class="mb-4">
+        <button type="submit" class="btn btn-primary">Add post</button>
+    </form>
+
     <div class="row">
         {% for post in posts %}
-        <div class="col-md-6 col-lg-4 mt-5">
+        <div class="col-md-6 col-lg-3 mt-5">
             <div class="blog-grid">
                 <div class="blog-grid-img position-relative">
                     <img alt="img" src="{{ post.get('image_url', 'https://www.bootdey.com/image/480x480/00FFFF/000000') }}">
