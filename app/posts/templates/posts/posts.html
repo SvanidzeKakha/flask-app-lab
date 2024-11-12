@@ -1,17 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %} POSTS {% endblock %}
+{% block title %}Posts{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" integrity="sha256-2XFplPlrFClt0bIdPgpz8H7ojnk10H69xRqd9+uTShA=" crossorigin="anonymous" />
+{% endblock %}
 
 {% block content %}
-
+<div class="container">
     <h1>Articles</h1>
-    
-    <ul>
-    {% for post in posts%}
-        <li> {{post["id"]}} -  
-            <a href="{{ url_for('post.detail_post', id=post['id']) }}">{{post["title"]}}</a>
-        </li>
-    {% endfor %}
-    </ul>
-    
+    <div class="row">
+        {% for post in posts %}
+        <div class="col-md-6 col-lg-4 mt-5">
+            <div class="blog-grid">
+                <div class="blog-grid-img position-relative">
+                    <img alt="img" src="{{ post.get('image_url', 'https://www.bootdey.com/image/480x480/00FFFF/000000') }}">
+                </div>
+                <div class="blog-grid-text p-4">
+                    <h3 class="h5 mb-3">
+                        <a href="{{ url_for('post.detail_post', id=post['id']) }}">{{ post['title'] }}</a>
+                    </h3>
+                    <p class="display-30">{{ post['content'][:100] }}</p>
+                    <div class="meta meta-style2">
+                        <ul>
+                            <li><a href="#"><i class="fas fa-calendar-alt"></i> {{ post['publication_date'] }}</a></li>
+                            <li><a href="#"><i class="fas fa-calendar-alt"></i> {{ post['category'] }}</a></li>
+                            <li><a href="#"><i class="fas fa-user"></i> {{ post['author'] }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
