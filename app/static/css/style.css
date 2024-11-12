@@ -234,3 +234,7 @@ body.dark .navbar {
     margin: 10px 0;
     border-radius: 5px;
 }
+
+.myclass {
+    background-color: #bbff00; /* Fully opaque */
+}

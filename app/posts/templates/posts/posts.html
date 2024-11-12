@@ -6,11 +6,14 @@
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" integrity="sha256-2XFplPlrFClt0bIdPgpz8H7ojnk10H69xRqd9+uTShA=" crossorigin="anonymous" />
 {% endblock %}
-
+{% block css %} 
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/posts.css') }}">
+{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Articles</h1>
-
+    
+    <div class="myclass"><h1>Articles</h1></div>
+    
     <form action="{{ url_for('.add_post') }}" class="mb-4">
         <button type="submit" class="btn btn-primary">Add post</button>
     </form>
@@ -20,7 +23,7 @@
         <div class="col-md-6 col-lg-3 mt-5">
             <div class="blog-grid">
                 <div class="blog-grid-img position-relative">
-                    <img alt="img" src="{{ post.get('image_url', 'https://www.bootdey.com/image/480x480/00FFFF/000000') }}">
+                    <img alt="img" src="{{ url_for('post.static', filename='images/post_image.png') }}">
                 </div>
                 <div class="blog-grid-text p-4">
                     <h3 class="h5 mb-3">

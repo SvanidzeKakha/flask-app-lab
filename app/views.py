@@ -1,15 +1,15 @@
-from flask import Flask, request, redirect, url_for, render_template, abort
-from . import app
+from flask import Flask, request, redirect, url_for, render_template, abort, current_app
+#from . import app
 
-@app.route('/')
+@current_app.route('/')
 def main():
     return render_template("base.html")
 
-@app.route('/resume')
+@current_app.route('/resume')
 def resume():
     return render_template('resume.html', title='My resume')
 
-@app.route('/homepage') 
+@current_app.route('/homepage') 
 def home():
     """View for the Home page of your website."""
     agent = request.user_agent
