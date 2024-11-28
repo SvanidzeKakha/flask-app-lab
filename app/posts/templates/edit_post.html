@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Edit Post</h1>
+
+    <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        {% from 'form_macros.html' import render_field %}
+
+        {{ render_field(form.title) }}
+        {{ render_field(form.content) }}
+        {{ render_field(form.is_active) }}
+        {{ render_field(form.date_posted) }}
+        {{ render_field(form.category) }}
+        {{ render_field(form.author) }}
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update Post</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

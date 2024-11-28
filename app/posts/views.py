@@ -1,62 +1,69 @@
 from . import post_bp
-import json
 from .forms import PostForm
 from flask import render_template, abort, flash, redirect, url_for
+from .models import Post
+from app import db
 
-posts = [
-    {"id": 1, 'title': 'My First Post', 'content': 'This is the content of my first post.', 'author': 'John Doe'},
-    {"id": 2, 'title': 'Another Day', 'content': 'Today I learned about Flask macros.', 'author': 'Jane Smith'},
-    {"id": 3, 'title': 'Flask and Jinja2', 'content': 'Jinja2 is powerful for templating.', 'author': 'Mike Lee'}
-] 
-
-@post_bp.route('/') 
+@post_bp.route('/')
 def get_posts():
-    try:
-        with open('app/posts/templates/posts/posts.json', 'r') as f:
-            posts = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        posts = []
+    posts = Post.query.order_by(Post.date_posted.desc()).all()  # Querying the database and sorting by date_posted in descending order
     return render_template("posts/posts.html", posts=posts)
 
-@post_bp.route('/<int:id>') 
+@post_bp.route('/<int:id>')  # The route will accept an 'id' parameter in the URL
 def detail_post(id):
-    try:
-        with open('app/posts/templates/posts/posts.json', 'r') as f:
-            posts = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        posts = []
-
-    post = next((post for post in posts if post["id"] == id), None)
-    if post is None:
-        abort(404)
-        
+    post = Post.query.get_or_404(id)  # Query the database for the post by its ID; returns 404 if not found
     return render_template("posts/detail_post.html", post=post)
 
-@post_bp.route('/add_post', methods = ['GET', 'POST'])
+@post_bp.route('/add_post', methods=['GET', 'POST'])
 def add_post():
     form = PostForm()
     if form.validate_on_submit():
-        title = form.title.data
-        content = form.content.data
-
+        post = Post(
+            title=form.title.data,
+            content=form.content.data,
+            category=form.category.data,
+            is_active=form.is_active.data,
+            date_posted=form.date_posted.data,
+            author="Anonymous"  # Replace with dynamic user info if available
+        )
         try:
-            with open('app/posts/templates/posts/posts.json', 'r') as f:
-                posts = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            posts = []
+            db.session.add(post)
+            db.session.commit()
+            flash('Post added successfully!', 'success')
+            return redirect(url_for('post.get_posts'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding the post. Please try again.', 'danger')
+            print(f"Error: {e}")
 
-        next_id = max([post["id"] for post in posts], default=0) + 1
-        post = {"id": next_id, "title": title, "content": content, "author": "Anonymous"}
+    return render_template('posts/add_post.html', form=form)
 
-        posts.append(post)
+@post_bp.route('/delete/<int:id>', methods=['POST'])
+def delete_post(id):
+    post = Post.query.get_or_404(id)  # Fetch the post from the database
+    try:
+        db.session.delete(post)  # Delete the post from the session
+        db.session.commit()  # Commit the changes to the database
+        flash('Post deleted successfully!', 'success')  # Flash a success message
+    except Exception as e:
+        db.session.rollback()  # If an error occurs, rollback the transaction
+        flash('Error deleting the post. Please try again.', 'danger')
+        print(f"Error: {e}")
+    
+    return redirect(url_for('post.get_posts'))  # Redirect back to the posts list page
 
-        with open('app/posts/templates/posts/posts.json', 'w') as f:
-            json.dump(posts, f, indent=4)
-
-        flash('Post added successfully', 'success')
+@post_bp.route('/edit/<int:id>', methods=['GET','POST'])
+def edit_post(id):
+    post = db.get_or_404(Post, id)
+    form = PostForm(obj=post)
+    form.date_posted.data = post.date_posted
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit()
+        flash('Post updated successfully!')
         return redirect(url_for('post.get_posts'))
-
-    return render_template('posts/add_post.html', form = form)
+    return render_template('posts/add_post.html', form=form)
 
 @post_bp.errorhandler(404)
 def page_not_found(error):
