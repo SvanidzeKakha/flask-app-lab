@@ -26,6 +26,7 @@ def create_app(config_name = 'config'):
         app.register_blueprint(users_bp, url_prefix="/users")
         
         from app.posts.models import Post
+        from app.users.models import User
         db.create_all()
         
     return app

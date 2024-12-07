@@ -38,11 +38,24 @@
                             <li><a href="#"><i class="fas fa-user"></i> {{ post['author'] }}</a></li>
                         </ul>
                     </div>
+                    
+                    <!-- Display Tags -->
+                    <div class="tags mt-2">
+                        <strong>Tags:</strong>
+                        {% if post['tags'] %}
+                            {% for tag in post['tags'] %}
+                                {{ tag.name }}{% if not loop.last %} | {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            No tags
+                        {% endif %}
+                    </div>
+                    
                     <!-- Delete Button Form -->
                     <form action="{{ url_for('post.delete_post', id=post['id']) }}" method="POST" style="display:inline;">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                      <!-- Edit Button Form -->
+                    <!-- Edit Button Form -->
                     <form action="{{ url_for('post.edit_post', id=post['id']) }}" method="GET" style="display:inline;">
                         <button type="submit" class="btn btn-warning btn-sm">Edit</button>
                     </form>
@@ -51,6 +64,5 @@
         </div>
         {% endfor %}
     </div>
-    
 </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField, BooleanField, DateTimeLocalField, SelectField
+from wtforms import StringField, SelectMultipleField, TextAreaField, SubmitField, BooleanField, DateTimeLocalField, SelectField
 from wtforms.validators import DataRequired, Length
 from datetime import datetime as dt
 
@@ -11,5 +11,6 @@ class PostForm(FlaskForm):
     is_active = BooleanField('Active Post')
     date_posted = DateTimeLocalField('Publication Date', format="%Y-%m-%dT%H:%M", default=dt.now())
     category = SelectField('Category', choices=CATEGORIES, validators=[DataRequired()])
-    author = StringField('Author', validators=[DataRequired()])
+    author_id = SelectField("Author", coerce=int)
+    tags_id = SelectMultipleField("Tags", coerce=int)
     submit = SubmitField('Add Post')
