@@ -1,6 +1,10 @@
 from . import users_bp
 from flask import render_template, request, redirect, url_for, make_response, session, flash
 from datetime import timedelta, datetime
+from .forms import RegisterForm, LoginForm
+from .models import User, hash_pass
+from app import db, bcrypt
+from flask_login import login_user, current_user, logout_user, login_required
 
 @users_bp.route("/set_color_scheme/<scheme>")
 def set_color_scheme(scheme):
@@ -12,13 +16,12 @@ def set_color_scheme(scheme):
         flash(f"Success: Color scheme changed to '{scheme}'.", "success")
         return resp
 
-@users_bp.route("/profile", methods=['GET', 'POST'])
-def get_profile():
-    if "username" not in session:
-        flash("Error: You must be logged in to access this page.", "danger")
-        return redirect(url_for("users.login"))
+from flask_login import login_required, current_user
 
-    username_value = session["username"]
+@users_bp.route("/profile", methods=['GET', 'POST'])
+@login_required  # Add this decorator
+def get_profile():
+    username_value = current_user.username
     cookies = request.cookies
     color_scheme = cookies.get('color_scheme', 'light')
 
@@ -42,31 +45,89 @@ def get_profile():
 
     return render_template("profile.html", username=username_value, cookies=cookies, color_scheme=color_scheme)
 
+@users_bp.route('/account')
+@login_required
+def account():
+    return render_template('account.html', title='Account', username=current_user.username)
+
+@users_bp.route('/all_users')
+@login_required
+def all_users():
+    # Fetch all users from the database
+    users = User.query.all()
+    
+    # Count the number of users
+    user_count = len(users)
+    
+    return render_template('all_users.html', users=users, user_count=user_count)
+
+@users_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('users.account'))
+    
+    form = RegisterForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=hashed_password
+        )
+        try:
+            db.session.add(user)
+            db.session.commit()
+            
+            login_user(user)
+            flash(f'Account created for {form.username.data}!', 'success')
+            return redirect(url_for('users.account'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error creating the account. Please try again.', 'danger')
+            print(f"Error: {e}")
+    
+    return render_template('register.html', form=form, title='Register')
+
 @users_bp.route("/login", methods=['GET', 'POST'])
 def login():
-    correct_username = "User1"
-    correct_password = "password123"
-
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        if username == correct_username and password == correct_password:
-            session["username"] = username
-            flash("Success: Logged in successfully.", "success")
-            return redirect(url_for("users.get_profile"))
+    if current_user.is_authenticated:
+        return redirect(url_for('users.account'))
+   
+    form = LoginForm()
+    print("Form data:", request.form)
+    print("Form validate_on_submit:", form.validate_on_submit())
+    
+    if form.validate_on_submit():
+        print("Form validated successfully")
+        user = User.query.filter_by(email=form.email.data).first()
+        
+        if user:
+            print(f"User found: {user.email}")
+            if user.check_pass(form.password.data):
+                login_user(user)
+                session['username'] = user.username
+                flash('Login successful', 'success')
+                return redirect(url_for('users.account'))
+            else:
+                print("Password check failed")
+                flash('Invalid email or password', 'danger')
         else:
-            flash("Error: Invalid username or password.", "danger")
-            return redirect(url_for("users.login"))
-
-    return render_template("login.html")
+            print("No user found with this email")
+            flash('Invalid email or password', 'danger')
+    
+    if form.errors:
+        print("Form validation errors:")
+        for field, errors in form.errors.items():
+            print(f"{field}: {errors}")
+    
+    return render_template("login.html", form=form)
 
 @users_bp.route("/logout")
 def logout():
+    logout_user()
     session.pop('username', None)
-    session.pop('age', None)
+    flash('You have been logged out', 'info')
     return redirect(url_for("users.get_profile"))
-
 
 @users_bp.route("/hi/<string:name>")
 def greetings(name):
