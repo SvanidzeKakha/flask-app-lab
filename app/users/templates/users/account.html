@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -9,25 +8,52 @@
                     <h2 class="mb-0">Account Details</h2>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4 font-weight-bold">Username:</div>
-                        <div class="col-md-8">{{ username }}</div>
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('users.static', filename='profile_pics/default.jpg') }}" 
+                             alt="Profile Picture" 
+                             class="rounded-circle img-fluid" 
+                             style="max-width: 200px; max-height: 200px; object-fit: cover;">
                     </div>
                     
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Username:</div>
+                        <div class="col-md-8">{{ current_user.username }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Email:</div>
+                        <div class="col-md-8">{{ current_user.email }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">About:</div>
+                        <div class="col-md-8">{{ current_user.about_me }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Last Seen:</div>
+                        <div class="col-md-8">
+                            {% if current_user.last_seen %}
+                                {{ current_user.last_seen.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </div>
+                    </div>
+                   
                     <hr>
-
                     <div class="row mb-3">
                         <div class="col-md-4 font-weight-bold">Account Actions:</div>
                         <div class="col-md-8">
                             <a href="{{ url_for('users.get_profile') }}" class="btn btn-info btn-sm mr-2">
                                 Manage Cookies
                             </a>
+                            <a href="{{ url_for('users.edit_profile')}}" class="btn btn-info btn-sm mr-2">
+                                Edit Profile
+                            </a>
                             <a href="{{ url_for('users.logout') }}" class="btn btn-danger btn-sm">
                                 Logout
                             </a>
                         </div>
                     </div>
-
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}

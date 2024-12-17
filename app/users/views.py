@@ -1,8 +1,8 @@
 from . import users_bp
 from flask import render_template, request, redirect, url_for, make_response, session, flash
 from datetime import timedelta, datetime
-from .forms import RegisterForm, LoginForm
-from .models import User, hash_pass
+from .forms import RegisterForm, LoginForm, UpdateAccountForm
+from .models import User
 from app import db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -19,7 +19,7 @@ def set_color_scheme(scheme):
 from flask_login import login_required, current_user
 
 @users_bp.route("/profile", methods=['GET', 'POST'])
-@login_required  # Add this decorator
+@login_required
 def get_profile():
     username_value = current_user.username
     cookies = request.cookies
@@ -44,11 +44,62 @@ def get_profile():
             return resp
 
     return render_template("profile.html", username=username_value, cookies=cookies, color_scheme=color_scheme)
+@users_bp.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = UpdateAccountForm()
 
-@users_bp.route('/account')
+    # Populate the form with current user's data
+    if request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        form.about_me.data = current_user.about_me
+    
+    if form.validate_on_submit():
+        # Update the user's profile
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.about_me = form.about_me.data
+        
+        # If password is provided, update it as well
+        if form.password.data:
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            current_user.password = hashed_password
+        
+        db.session.commit()
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('users.account'))
+    
+    return render_template('edit_profile.html', form=form)
+@users_bp.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account', username=current_user.username)
+    form = UpdateAccountForm()
+
+    if form.validate_on_submit():
+        # Update the user's profile details
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.about_me = form.about_me.data
+        current_user.last_seen = datetime.utcnow()
+
+        # Update password if provided
+        if form.password.data:
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            current_user.password = hashed_password
+
+        db.session.commit()
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('users.account'))
+
+    elif request.method == 'GET':
+        # Pre-populate the form with current user's details
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        form.about_me.data = current_user.about_me
+
+    return render_template('account.html', title='Account', form=form)
+
 
 @users_bp.route('/all_users')
 @login_required

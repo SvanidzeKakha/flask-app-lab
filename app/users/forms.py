@@ -33,3 +33,19 @@ class LoginForm(FlaskForm):
         DataRequired()
     ])
     submit = SubmitField('Login')
+
+class UpdateAccountForm(FlaskForm):
+    username = StringField('Username', validators=[
+        DataRequired(), Length(min=2, max=20)
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(), Email()
+    ])
+    about_me = StringField('About Me', validators=[
+        Length(max=200)
+    ])
+    password = PasswordField('New Password', validators=[
+        Length(min=6), EqualTo('confirm_password', message='Passwords must match')
+    ])
+    confirm_password = PasswordField('Confirm New Password')
+    submit = SubmitField('Update')
